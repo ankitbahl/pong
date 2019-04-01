@@ -1,4 +1,7 @@
-let c = document.getElementById("myCanvas");
+let c = document.getElementById("game");
+let tickTime = 10;
+let scoreBoard = document.getElementById('score');
+let sctx = scoreBoard.getContext('2d');
 let ctx = c.getContext("2d");
 const height = c.getAttribute('height');
 const width = c.getAttribute('width');
@@ -6,6 +9,8 @@ const p1x = 50;
 const p2x = width - p1x;
 let p1y = 200;
 let p2y = 200;
+let p1Score = 0;
+let p2Score = 0;
 const playerWidth = 10;
 const playerHeight = 100;
 const bWidth = 10;
@@ -19,7 +24,6 @@ let p1down = false;
 let p1up = false;
 let p2down = false;
 let p2up = false;
-let p2 = 0;
 window.onkeydown = function (e) {
   switch(e.code) {
       case 'ArrowUp':
@@ -120,6 +124,19 @@ function bounds() {
     if (p2y > height - playerHeight) {
         p2y = height - playerHeight;
     }
+
+    // point
+    if (x < 0 || x > width) {
+        if(x < 0) {
+            p2Score++;
+        } else {
+            p1Score++;
+        }
+
+        x = width/2;
+        y = height/2;
+        tickTime = 1000;
+    }
 }
 
 function physics() {
@@ -133,14 +150,22 @@ function draw() {
     ctx.fillRect(x,y,bWidth,bHeight);
 }
 
+function score() {
+    sctx.clearRect(0, 0, scoreBoard.width, scoreBoard.height);
+    sctx.font = '30px Arial';
+    sctx.fillText(`${p1Score}:${p2Score}`, 100,100);
+}
+
 function tick() {
+    tickTime = 10;
     clear();
     collision();
     movement();
-    bounds();
     physics();
+    bounds();
     draw();
-    window.setTimeout(tick, 10);
+    score();
+    window.setTimeout(tick, tickTime);
 }
 
 tick();
