@@ -19,7 +19,7 @@ let x = width/2;
 let y = height/2;
 let trajectory = 3 * Math.PI /4;
 let direction = false; //false = left, true = right
-const speed = 5;
+let speed = 5;
 let p1down = false;
 let p1up = false;
 let p2down = false;
@@ -32,14 +32,15 @@ window.onkeydown = function (e) {
       case 'ArrowDown':
           p1down = true;
           break;
-      case 'KeyW':
-          p2up = true;
+      case 'Space':
+          speed = 10;
           break;
-      case 'KeyS':
-          p2down = true;
-          break;
-      default:
-          console.log(e.code);
+//      case 'KeyW':
+//          p2up = true;
+//          break;
+//      case 'KeyS':
+//          p2down = true;
+//          break;
   }
 };
 window.onkeyup = function (e) {
@@ -50,12 +51,15 @@ window.onkeyup = function (e) {
       case 'ArrowDown':
           p1down = false;
           break;
-      case 'KeyW':
-          p2up = false;
-          break;
-      case 'KeyS':
-          p2down = false;
-          break;
+      case 'Space':
+                speed = 5;
+                break;
+//      case 'KeyW':
+//          p2up = false;
+//          break;
+//      case 'KeyS':
+//          p2down = false;
+//          break;
   }
 };
 
@@ -111,6 +115,17 @@ function movement() {
     }
 }
 
+function cpu_move() {
+    let y_guess = y + (2 * Math.random() - 1) * height * 0.15
+    if (p2y > y_guess) {
+        p2down = false;
+        p2up = true;
+    } else {
+        p2up = false;
+        p2down = true;
+    }
+}
+
 function bounds() {
     if (p1y < 0) {
         p1y = 0;
@@ -132,10 +147,10 @@ function bounds() {
         } else {
             p1Score++;
         }
-
         x = width/2;
         y = height/2;
         tickTime = 1000;
+        speed *= -1;
     }
 }
 
@@ -153,7 +168,7 @@ function draw() {
 function score() {
     sctx.clearRect(0, 0, scoreBoard.width, scoreBoard.height);
     sctx.font = '30px Arial';
-    sctx.fillText(`${p1Score}:${p2Score}`, 100,100);
+    sctx.fillText(`Score: ${p1Score}:${p2Score}`, 100,100);
 }
 
 function tick() {
@@ -161,6 +176,7 @@ function tick() {
     clear();
     collision();
     movement();
+    cpu_move();
     physics();
     bounds();
     draw();
