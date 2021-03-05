@@ -13,6 +13,8 @@ let p1Score = 0;
 let p2Score = 0;
 const playerWidth = 10;
 const playerHeight = 100;
+let p1Height = 100;
+let p2Height = 100;
 const bWidth = 10;
 const bHeight = 10;
 let x = width/2;
@@ -89,13 +91,13 @@ function collision() {
     }
 
     // ball hits p1
-    if (x < p1x + playerWidth && x > p1x && (y + bHeight > p1y) && (y < p1y + playerHeight)) {
+    if (x < p1x + playerWidth && x > p1x && (y + bHeight > p1y) && (y < p1y + p1Height)) {
         direction = true;
         trajectory += Math.PI / 2;
     }
 
     // ball hits p2
-    if (x > p2x && x < p2x + playerWidth && (y + bHeight > p2y) && (y < p2y + playerHeight)) {
+    if (x > p2x && x < p2x + playerWidth && (y + bHeight > p2y) && (y < p2y + p2Height)) {
         direction = false;
         trajectory += Math.PI / 2;
     }
@@ -130,14 +132,14 @@ function bounds() {
     if (p1y < 0) {
         p1y = 0;
     }
-    if (p1y > height - playerHeight) {
-        p1y = height - playerHeight;
+    if (p1y > height - p1Height) {
+        p1y = height - p1Height;
     }
     if (p2y < 0) {
         p2y = 0;
     }
-    if (p2y > height - playerHeight) {
-        p2y = height - playerHeight;
+    if (p2y > height - p2Height) {
+        p2y = height - p2Height;
     }
 
     // point
@@ -160,9 +162,21 @@ function physics() {
 }
 
 function draw() {
-    ctx.fillRect(p1x, p1y, playerWidth, playerHeight);
-    ctx.fillRect(p2x, p2y, playerWidth, playerHeight);
+    ctx.fillRect(p1x, p1y, playerWidth, p1Height);
+    ctx.fillRect(p2x, p2y, playerWidth, p2Height);
     ctx.fillRect(x,y,bWidth,bHeight);
+}
+
+function harder() {
+    if (p1Score == 8) {
+        alert('You Win')
+        tickTime = 99999999;
+    } else if (p2Score == 8) {
+        alert('You Lose');
+        tickTime = 99999999;
+    } else {
+        p1Height = playerHeight - p1Score * 10;
+    }
 }
 
 function score() {
@@ -181,6 +195,7 @@ function tick() {
     bounds();
     draw();
     score();
+    harder();
     window.setTimeout(tick, tickTime);
 }
 
