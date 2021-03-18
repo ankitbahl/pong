@@ -1,3 +1,110 @@
+const devMode = true;
+let serverUrl, websocketUrl, ws;
+if (devMode) {
+    serverUrl = 'http://localhost:8080';
+    websocketUrl = 'ws://localhost:8080';
+} else {
+    serverUrl = 'https://pong.ankitbahl.com:8080';
+    websocketUrl = 'wss://pong.ankitbahl.com:8080';
+}
+
+refreshStatus();
+
+function refreshStatus() {
+    let req = new XMLHttpRequest();
+    req.timeout = 5000;
+    req.onload = function(e) {
+        const status = JSON.parse(req.response);
+        document.getElementById('status').innerText = `Server online, ${status.users}/2 connected`;
+        const button = document.getElementById('connect');
+        button.onclick = () => {
+            connectToServer();
+            button.onclick = ()=>{};
+            button.disabled = true;
+        };
+        button.disabled = false;
+    }
+    req.onerror = function(e) {
+        document.getElementById('status').innerText = 'Server offline';
+    }
+    req.ontimeout = function(e) {
+        document.getElementById('status').innerText = 'Server offline';
+    }
+    req.open('GET', serverUrl);
+    req.send();
+}
+
+let connected = false;
+let user;
+
+function connectToServer() {
+    ws = new WebSocket(websocketUrl);
+    ws.onopen = function(event) {
+        connected = true;
+        ws.onmessage = function(event) {
+            let json = JSON.parse(event.data);
+            switch(json.type) {
+                case 'init':
+                    user = json.user;
+                    console.log('you are user %s', user);
+                    document.getElementById('status').innerText = `Server online, ${user + 1}/2 connected`;
+                    break;
+                case 'ready':
+                    console.log('ready');
+                    document.getElementById('status').innerText = 'All players connected, starting in 3s';
+                    setTimeout(() => {
+                        document.getElementById('status').innerText = 'All players connected, starting in 2s';
+                        setTimeout(() => {
+                            document.getElementById('status').innerText = 'All players connected, starting in 1s';
+                        }, 1000);
+                    }, 1000);
+                    break;
+                case 'start':
+                    console.log('game start');
+                    document.getElementById('status').innerText = 'Game started';
+                    tick();
+                    break;
+                case 'ball':
+                    x = json.x;
+                    y = json.y;
+                    break;
+                case 'player':
+                    if (user == 0) {
+                        p2y = json.y;
+                    } else {
+                        p1y = json.y;
+                    }
+                    break;
+                case 'score':
+                    speed = 0;
+                    if (json.p == 0) {
+                        p1Score += 1;
+                        trajectory = 3 * Math.PI /4;
+                        direction = false;
+                    } else {
+                        p2Score += 1;
+                        trajectory = Math.PI /4;
+                        direction = true;
+                    }
+                    x = width/2;
+                    y = height/2;
+                    break;
+                case 'resume':
+                    speed = 5;
+                default:
+                break;
+            }
+        }
+    }
+
+    ws.onclose = function(event) {
+        console.log('connection closed by server');
+        alert('connection broke, have to refresh');
+        connected = false;
+    }
+}
+
+// STATE
 let c = document.getElementById("game");
 let tickTime = 10;
 let scoreBoard = document.getElementById('score');
@@ -26,49 +133,46 @@ let p1down = false;
 let p1up = false;
 let p2down = false;
 let p2up = false;
+
 window.onkeydown = function (e) {
   switch(e.code) {
       case 'ArrowUp':
-          p1up = true;
+          if (user == 0) {
+              p1up = true;
+          } else {
+              p2up = true;
+          }
           break;
       case 'ArrowDown':
-          p1down = true;
+          if (user == 0) {
+              p1down = true;
+          } else {
+              p2down = true;
+          }
           break;
-      case 'Space':
-          speed = 10;
-          break;
-//      case 'KeyW':
-//          p2up = true;
-//          break;
-//      case 'KeyS':
-//          p2down = true;
-//          break;
   }
 };
 window.onkeyup = function (e) {
   switch(e.code) {
       case 'ArrowUp':
-          p1up = false;
+          if (user == 0) {
+            p1up = false;
+          } else {
+            p2up = false;
+          }
           break;
       case 'ArrowDown':
-          p1down = false;
+            if (user == 0) {
+              p1down = false;
+            } else {
+              p2down = false;
+            }
           break;
-      case 'Space':
-                speed = 5;
-                break;
-//      case 'KeyW':
-//          p2up = false;
-//          break;
-//      case 'KeyS':
-//          p2down = false;
-//          break;
   }
 };
 
 function clear() {
-    ctx.clearRect(p1x, p1y, playerWidth, playerHeight);
-    ctx.clearRect(p2x, p2y, playerWidth, playerHeight);
-    ctx.clearRect(x - 1 , y - 1, bWidth + 2, bHeight + 2);
+    ctx.clearRect(0 , 0, width, height);
 }
 
 function collision() {
@@ -141,19 +245,6 @@ function bounds() {
     if (p2y > height - p2Height) {
         p2y = height - p2Height;
     }
-
-    // point
-    if (x < 0 || x > width) {
-        if(x < 0) {
-            p2Score++;
-        } else {
-            p1Score++;
-        }
-        x = width/2;
-        y = height/2;
-        tickTime = 1000;
-        speed *= -1;
-    }
 }
 
 function physics() {
@@ -162,6 +253,7 @@ function physics() {
 }
 
 function draw() {
+
     ctx.fillRect(p1x, p1y, playerWidth, p1Height);
     ctx.fillRect(p2x, p2y, playerWidth, p2Height);
     ctx.fillRect(x,y,bWidth,bHeight);
@@ -185,18 +277,25 @@ function score() {
     sctx.fillText(`Score: ${p1Score}:${p2Score}`, 100,100);
 }
 
-function tick() {
-    tickTime = 10;
-    clear();
-    collision();
-    movement();
-    cpu_move();
-    physics();
-    bounds();
-    draw();
-    score();
-    harder();
-    window.setTimeout(tick, tickTime);
+function sendUpdates() {
+    if (user == 0) {
+        ws.send(p1y);
+    } else {
+        ws.send(p2y);
+    }
 }
 
-tick();
+function tick() {
+    sendUpdates()
+    movement();
+    physics();
+    bounds();
+    collision();
+    clear();
+    draw();
+    score();
+//    harder();
+    if (connected) {
+        window.setTimeout(tick, tickTime);
+    }
+}

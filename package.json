@@ -1,0 +1,22 @@
+{
+  "name": "pong",
+  "version": "1.0.0",
+  "description": "Pong game server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ankitbahl/pong.git"
+  },
+  "author": "Ankit Bahl",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ankitbahl/pong/issues"
+  },
+  "homepage": "https://github.com/ankitbahl/pong#readme",
+  "dependencies": {
+    "ws": "^7.4.4"
+  }
+}

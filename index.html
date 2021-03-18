@@ -2,12 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Tetris</title>
+    <title>Pong</title>
 </head>
-<body style="overflow-y:hidden">
-    <span>Arrow keys to move, first to 8 points. If ball gets stuck press space to speed it up.</span>
+<body style="overflow-y:hidden; display: flex">
     <canvas id="game" width="888" height="500" style="border: 1px solid black"></canvas>
-    <canvas id="score" width="500" height="200" style="margin-left: 194px;"></canvas>
+    <div style="display: block">
+        <canvas id="score" height="200" style=""></canvas>
+        <div style="height: 100px; text-align: center;">
+            <h1>Connection Status:</h1>
+            <br />
+            <span id="status">Loading...</span>
+            <br /><br />
+            <button id="connect" disabled>Connect To Server</button>
+        </div>
+        <div id="chat-window" style="height: 80px"></div>
+        <text id="chat"></text>
+    </div>
     <script src="code.js"></script>
 </body>
 </html>
